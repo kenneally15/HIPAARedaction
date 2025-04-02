@@ -1,0 +1,27 @@
+{
+  "name": "hipaaredaction",
+  "version": "1.0.0",
+  "description": "A tool to redact HIPAA-protected information from PDF documents",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "HIPAA",
+    "pdf",
+    "redaction",
+    "privacy"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "canvas": "^3.1.0",
+    "express": "^5.1.0",
+    "multer": "^1.4.5-lts.2",
+    "natural": "^8.0.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^2.16.105"
+  }
+}

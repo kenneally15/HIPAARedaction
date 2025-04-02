@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIPAA PDF Stamping Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HIPAA PDF Stamping Tool</h1>
+            <p>Upload a PDF document to add a "HIPAA COMPLIANT" stamp</p>
+        </header>
+        
+        <main>
+            <div class="upload-container">
+                <div id="drop-area" class="drop-area">
+                    <form id="upload-form">
+                        <p>Drag and drop a PDF file here</p>
+                        <p>or</p>
+                        <input type="file" id="file-input" accept=".pdf" hidden>
+                        <button type="button" id="select-file-btn">Select a file</button>
+                    </form>
+                </div>
+                
+                <div id="file-info" class="file-info hidden">
+                    <p>Selected file: <span id="filename">No file selected</span></p>
+                    <button id="upload-btn" disabled>Add HIPAA Stamp</button>
+                </div>
+            </div>
+
+            <div id="processing" class="processing hidden">
+                <div class="spinner"></div>
+                <p>Processing your PDF document...</p>
+            </div>
+
+            <div id="results" class="results hidden">
+                <h2>PDF Processing Complete</h2>
+                <p>Your document has been stamped as "HIPAA COMPLIANT".</p>
+                <button id="download-btn">Download Stamped PDF</button>
+            </div>
+
+            <div id="error" class="error hidden">
+                <h2>An Error Occurred</h2>
+                <p id="error-message"></p>
+                <button id="try-again-btn">Try Again</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>This tool helps in documenting that PDFs are HIPAA compliant. It adds a "HIPAA COMPLIANT" stamp to each page.</p>
+        </footer>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html> 
