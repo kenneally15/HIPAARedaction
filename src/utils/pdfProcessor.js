@@ -161,21 +161,6 @@ async function processAndRedactPDF(inputPath, outputPath) {
       });
     }
     
-    // Add a stamp at the bottom of each page
-    for (let i = 0; i < pages.length; i++) {
-      const page = pages[i];
-      const { width, height } = page.getSize();
-      
-      // Add HIPAA COMPLIANT stamp at the bottom of each page
-      page.drawText('HIPAA COMPLIANT - REDACTED', {
-        x: width / 2 - 110, // Center horizontally (approximate)
-        y: 30,             // Near the bottom
-        size: 16,
-        color: rgb(0, 0.5, 0),
-        opacity: 0.8
-      });
-    }
-    
     // Save the redacted PDF
     const redactedPdfBytes = await pdfDoc.save();
     fs.writeFileSync(outputPath, redactedPdfBytes);

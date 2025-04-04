@@ -124,7 +124,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
         
         return res.json({ 
           success: true, 
-          message: 'PDF processed and redacted successfully',
+          message: 'PDF processed - names and dates redacted with black boxes',
           downloadPath: blobUrl, // Direct URL to the redacted blob
           filename: redactedFilename
         });
@@ -141,7 +141,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       
       return res.json({ 
         success: true, 
-        message: 'PDF processed and redacted successfully',
+        message: 'PDF processed - names and dates redacted with black boxes',
         downloadPath: `/download/${path.basename(outputPath)}`
       });
     }
