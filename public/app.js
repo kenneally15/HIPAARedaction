@@ -117,6 +117,12 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.error || 'Failed to process the PDF file.');
       }
       
+      // Update download message if available
+      const downloadMessage = document.getElementById('download-message');
+      if (downloadMessage && data.message) {
+        downloadMessage.textContent = data.message;
+      }
+      
       // Show results
       processingSection.classList.add('hidden');
       resultsSection.classList.remove('hidden');
@@ -130,7 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle download
   downloadBtn.addEventListener('click', () => {
     if (downloadUrl) {
-      window.location.href = downloadUrl;
+      // Check if it's a URL to a blob or a relative path
+      if (downloadUrl.startsWith('http')) {
+        // Direct download from Blob URL
+        window.open(downloadUrl, '_blank');
+      } else {
+        // Local path
+        window.location.href = downloadUrl;
+      }
     }
   });
   

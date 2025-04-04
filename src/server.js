@@ -3,6 +3,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { processAndRedactPDF } = require('./utils/pdfProcessor');
+// Add Vercel Blob import
+const { put, del, list, get } = process.env.VERCEL ? require('@vercel/blob') : { put: null, del: null, list: null, get: null };
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -12,8 +14,7 @@ let storage;
 
 // Check if we're running on Vercel
 if (process.env.VERCEL) {
-  // For Vercel, use memory storage (temporary solution)
-  // In production, you should use a cloud storage solution like S3
+  // For Vercel, use memory storage
   storage = multer.memoryStorage();
 } else {
   // For local development, use disk storage
@@ -56,21 +57,38 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       return res.status(400).json({ error: 'No PDF file uploaded' });
     }
 
-    let inputPath;
-    let outputPath;
+    let blobUrl = null;
     
     if (process.env.VERCEL) {
-      // When on Vercel, we can't reliably use the filesystem
-      // This is a simplified response for demonstration
-      return res.json({ 
-        success: true, 
-        message: 'PDF received successfully (Note: Full processing disabled on Vercel demo)',
-        downloadPath: '#' // No actual download in this demo version
-      });
+      try {
+        // When on Vercel, use Vercel Blob storage
+        const filename = `${Date.now()}-${req.file.originalname}`;
+        
+        // Upload file to Vercel Blob
+        const blob = await put(filename, req.file.buffer, {
+          access: 'public',
+          contentType: 'application/pdf'
+        });
+        
+        blobUrl = blob.url;
+        
+        // In a real app, we would process the PDF here with Vercel Blob
+        // For demo, we're just storing and returning the URL
+        
+        return res.json({ 
+          success: true, 
+          message: 'PDF uploaded to Vercel Blob successfully',
+          downloadPath: blobUrl, // Direct URL to the blob
+          filename: filename // Store the filename for reference
+        });
+      } catch (blobError) {
+        console.error('Vercel Blob error:', blobError);
+        return res.status(500).json({ error: 'Failed to store file in Vercel Blob' });
+      }
     } else {
       // Local development with file access
-      inputPath = req.file.path;
-      outputPath = path.join(__dirname, '../uploads', `redacted-${path.basename(req.file.path)}`);
+      const inputPath = req.file.path;
+      const outputPath = path.join(__dirname, '../uploads', `redacted-${path.basename(req.file.path)}`);
       
       await processAndRedactPDF(inputPath, outputPath);
       
@@ -88,11 +106,17 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
 
 // Serve processed PDFs
 app.get('/download/:filename', (req, res) => {
-  const filePath = path.join(__dirname, '../uploads', req.params.filename);
-  if (fs.existsSync(filePath)) {
-    res.download(filePath);
+  // For local environment only
+  if (!process.env.VERCEL) {
+    const filePath = path.join(__dirname, '../uploads', req.params.filename);
+    if (fs.existsSync(filePath)) {
+      res.download(filePath);
+    } else {
+      res.status(404).json({ error: 'File not found' });
+    }
   } else {
-    res.status(404).json({ error: 'File not found' });
+    // For Vercel environment, should not reach here as we use direct Blob URLs
+    res.status(404).json({ error: 'File not found. In Vercel environment, use direct Blob URLs.' });
   }
 });
 
