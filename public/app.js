@@ -105,6 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         body: formData
       });
       
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server error: Expected JSON response but received a different format');
+      }
+      
       const data = await response.json();
       
       if (!response.ok) {
