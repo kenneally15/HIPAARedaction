@@ -63,27 +63,74 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       try {
         // When on Vercel, use Vercel Blob storage
         const filename = `${Date.now()}-${req.file.originalname}`;
+        const redactedFilename = `redacted-${filename}`;
         
-        // Upload file to Vercel Blob
-        const blob = await put(filename, req.file.buffer, {
+        // Upload the original file to Vercel Blob temporarily
+        const originalBlob = await put(filename, req.file.buffer, {
+          access: 'private', // Make original private for security
+          contentType: 'application/pdf'
+        });
+        
+        // Process the PDF in memory
+        const { PDFDocument } = require('pdf-lib');
+        const pdfProcessor = require('./utils/pdfProcessor');
+        
+        // Load PDF and process it
+        const pdfDoc = await PDFDocument.load(req.file.buffer);
+        
+        // Create a new temporary directory for processing
+        const tempDir = `/tmp/pdf-processing-${Date.now()}`;
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        const tempInputPath = `${tempDir}/${filename}`;
+        const tempOutputPath = `${tempDir}/${redactedFilename}`;
+        
+        // Write the original PDF to temp directory
+        fs.writeFileSync(tempInputPath, req.file.buffer);
+        
+        // Process and redact the PDF
+        await pdfProcessor.processAndRedactPDF(tempInputPath, tempOutputPath);
+        
+        // Read the processed file
+        const redactedPdfBuffer = fs.readFileSync(tempOutputPath);
+        
+        // Upload the redacted file to Vercel Blob
+        const redactedBlob = await put(redactedFilename, redactedPdfBuffer, {
           access: 'public',
           contentType: 'application/pdf'
         });
         
-        blobUrl = blob.url;
+        // Clean up temp files
+        try {
+          fs.unlinkSync(tempInputPath);
+          fs.unlinkSync(tempOutputPath);
+          fs.rmdirSync(tempDir);
+        } catch (cleanupError) {
+          console.error('Error cleaning up temp files:', cleanupError);
+          // Continue anyway
+        }
         
-        // In a real app, we would process the PDF here with Vercel Blob
-        // For demo, we're just storing and returning the URL
+        // Delete the original file from Blob storage (optional)
+        try {
+          await del(originalBlob.url);
+        } catch (deleteError) {
+          console.error('Error deleting original blob:', deleteError);
+          // Continue anyway
+        }
+        
+        blobUrl = redactedBlob.url;
         
         return res.json({ 
           success: true, 
-          message: 'PDF uploaded to Vercel Blob successfully',
-          downloadPath: blobUrl, // Direct URL to the blob
-          filename: filename // Store the filename for reference
+          message: 'PDF processed and redacted successfully',
+          downloadPath: blobUrl, // Direct URL to the redacted blob
+          filename: redactedFilename
         });
       } catch (blobError) {
         console.error('Vercel Blob error:', blobError);
-        return res.status(500).json({ error: 'Failed to store file in Vercel Blob' });
+        return res.status(500).json({ error: 'Failed to process PDF in Vercel environment' });
       }
     } else {
       // Local development with file access
@@ -94,7 +141,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       
       return res.json({ 
         success: true, 
-        message: 'PDF processed successfully',
+        message: 'PDF processed and redacted successfully',
         downloadPath: `/download/${path.basename(outputPath)}`
       });
     }

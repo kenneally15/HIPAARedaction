@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIPAA PDF Stamping Tool</title>
+    <title>HIPAA PDF Redaction Tool</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>HIPAA PDF Stamping Tool</h1>
-            <p>Upload a PDF document to add a "HIPAA COMPLIANT" stamp</p>
+            <h1>HIPAA PDF Redaction Tool</h1>
+            <p>Upload a PDF document to automatically redact names and dates</p>
         </header>
         
         <main>
@@ -26,20 +26,22 @@
                 
                 <div id="file-info" class="file-info hidden">
                     <p>Selected file: <span id="filename">No file selected</span></p>
-                    <button id="upload-btn" disabled>Add HIPAA Stamp</button>
+                    <button id="upload-btn" disabled>Redact PDF</button>
                 </div>
             </div>
 
             <div id="processing" class="processing hidden">
                 <div class="spinner"></div>
                 <p>Processing your PDF document...</p>
+                <p class="small-text">Identifying and redacting names and dates</p>
             </div>
 
             <div id="results" class="results hidden">
-                <h2>PDF Processing Complete</h2>
+                <h2>PDF Redaction Complete</h2>
                 <p>Your document has been processed successfully.</p>
-                <p id="download-message">Click the button below to download your file.</p>
-                <button id="download-btn">Download PDF</button>
+                <p>Names and dates have been redacted from the document.</p>
+                <p id="download-message">Click the button below to download your redacted file.</p>
+                <button id="download-btn">Download Redacted PDF</button>
             </div>
 
             <div id="error" class="error hidden">
@@ -50,7 +52,7 @@
         </main>
 
         <footer>
-            <p>This tool helps in documenting that PDFs are HIPAA compliant. It adds a "HIPAA COMPLIANT" stamp to each page.</p>
+            <p>This tool helps ensure HIPAA compliance by automatically identifying and redacting sensitive information such as names and dates from PDF documents.</p>
         </footer>
     </div>
     
