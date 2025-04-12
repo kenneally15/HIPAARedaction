@@ -1,20 +1,13 @@
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const fs = require('fs');
 const pdfjsLib = require('pdfjs-dist');
-const natural = require('natural');
 const { Canvas } = require('canvas');
 
 // Set the pdf.js worker path to use Node.js
 const PDFJS_WORKER_SRC = require.resolve('pdfjs-dist/build/pdf.worker.js');
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
 
-// Define patterns for redaction
-const NAME_PATTERNS = [
-  /(?:Dr|Mr|Mrs|Ms|Miss)\.\s+[A-Z][a-z]+\s+[A-Z][a-z]+/g, // Titles with names
-  /[A-Z][a-z]+\s+[A-Z][a-z]+/g, // First and last names
-  /[A-Z][a-z]+\s+[A-Z]\.\s+[A-Z][a-z]+/g, // First, middle initial, and last names
-];
-
+// Define patterns for date redaction
 const DATE_PATTERNS = [
   /\d{1,2}\/\d{1,2}\/\d{2,4}/g, // MM/DD/YYYY or DD/MM/YYYY
   /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{2,4}\b/g, // Month DD, YYYY
@@ -23,9 +16,8 @@ const DATE_PATTERNS = [
   /\b\d{4}-\d{2}-\d{2}\b/g, // YYYY-MM-DD
 ];
 
-// Setup NLP tokenizer for name entity recognition
-const tokenizer = new natural.WordTokenizer();
-const nameEntityRecognizer = new natural.BrillPOSTagger();
+// Add Dartmouth as a word to redact
+const dartmouthPattern = /\bDartmouth\b/gi;
 
 /**
  * Extract text content from a PDF
@@ -70,36 +62,23 @@ async function extractTextFromPDF(pdfBytes) {
 }
 
 /**
- * Find text matches based on regex patterns and NLP
+ * Find date matches based on regex patterns
  * @param {Array} textContentByPage Extracted text content from PDF
  * @returns {Array} Array of items to redact
  */
-function findTextToRedact(textContentByPage) {
+function findDatesToRedact(textContentByPage) {
   const itemsToRedact = [];
 
   textContentByPage.forEach(page => {
-    const pageText = page.items.map(item => item.text).join(' ');
-    const tokens = tokenizer.tokenize(pageText);
-    
-    // Process each text item for pattern matches
+    // Process each text item for date pattern matches
     page.items.forEach(item => {
       let shouldRedact = false;
       
-      // Check for name patterns
-      for (const pattern of NAME_PATTERNS) {
+      // Check for date patterns
+      for (const pattern of DATE_PATTERNS) {
         if (pattern.test(item.text)) {
           shouldRedact = true;
           break;
-        }
-      }
-      
-      // Check for date patterns
-      if (!shouldRedact) {
-        for (const pattern of DATE_PATTERNS) {
-          if (pattern.test(item.text)) {
-            shouldRedact = true;
-            break;
-          }
         }
       }
       
@@ -121,7 +100,7 @@ function findTextToRedact(textContentByPage) {
 }
 
 /**
- * Process a PDF file by redacting HIPAA information
+ * Process a PDF file by redacting dates
  * @param {string} inputPath Path to the input PDF
  * @param {string} outputPath Path where the redacted PDF will be saved
  */
@@ -133,9 +112,9 @@ async function processAndRedactPDF(inputPath, outputPath) {
     const pdfBytes = fs.readFileSync(inputPath);
     const textContentByPage = await extractTextFromPDF(pdfBytes);
     
-    // Find items to redact
-    const itemsToRedact = findTextToRedact(textContentByPage);
-    console.log(`Found ${itemsToRedact.length} items to redact`);
+    // Find dates to redact
+    const itemsToRedact = findDatesToRedact(textContentByPage);
+    console.log(`Found ${itemsToRedact.length} dates to redact`);
     
     // Load the PDF with pdf-lib for editing
     const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -147,7 +126,7 @@ async function processAndRedactPDF(inputPath, outputPath) {
       const page = pages[item.pageNum - 1];
       const { width, height } = page.getSize();
       
-      // Draw a black rectangle over the text to redact
+      // Draw a black rectangle over the date to redact
       // Adjust the y-coordinate since PDF coordinates start from the bottom
       const adjustedY = height - item.y;
       

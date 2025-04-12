@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <h1>PDF Redaction Tool</h1>
-            <p>Upload a PDF document to automatically redact names and dates</p>
+            <p>Upload a PDF document to automatically redact dates and the word "Dartmouth"</p>
         </header>
         
         <main>
@@ -26,20 +26,20 @@
                 
                 <div id="file-info" class="file-info hidden">
                     <p>Selected file: <span id="filename">No file selected</span></p>
-                    <button id="upload-btn" disabled>Redact PDF</button>
+                    <button id="upload-btn" disabled>Redact Content</button>
                 </div>
             </div>
 
             <div id="processing" class="processing hidden">
                 <div class="spinner"></div>
                 <p>Processing your PDF document...</p>
-                <p class="small-text">Identifying and redacting names and dates</p>
+                <p class="small-text">Identifying and redacting dates and the word "Dartmouth"</p>
             </div>
 
             <div id="results" class="results hidden">
                 <h2>PDF Redaction Complete</h2>
                 <p>Your document has been processed successfully.</p>
-                <p>Names and dates have been covered with black boxes.</p>
+                <p>Dates and the word "Dartmouth" have been covered with black boxes.</p>
                 <p id="download-message">Click the button below to download your redacted file.</p>
                 <button id="download-btn">Download Redacted PDF</button>
             </div>
@@ -52,7 +52,7 @@
         </main>
 
         <footer>
-            <p>This tool automatically identifies and redacts sensitive information such as names and dates from PDF documents by covering them with black boxes.</p>
+            <p>This tool automatically identifies and redacts dates and the word "Dartmouth" from PDF documents by covering them with black boxes.</p>
         </footer>
     </div>
     
