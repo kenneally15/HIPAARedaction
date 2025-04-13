@@ -70,7 +70,7 @@ function findDatesToRedact(textContentByPage) {
   const itemsToRedact = [];
 
   textContentByPage.forEach(page => {
-    // Process each text item for date pattern matches
+    // Process each text item for pattern matches
     page.items.forEach(item => {
       let shouldRedact = false;
       
@@ -80,6 +80,11 @@ function findDatesToRedact(textContentByPage) {
           shouldRedact = true;
           break;
         }
+      }
+      
+      // Check for Dartmouth
+      if (dartmouthPattern.test(item.text)) {
+        shouldRedact = true;
       }
       
       // If we should redact this item, add it to our list
